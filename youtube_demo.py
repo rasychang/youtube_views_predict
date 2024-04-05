@@ -3,20 +3,35 @@ import pandas as pd
 import numpy as np
 from datetime import datetime
 import joblib
+import numpy as np
+from tensorflow.keras.applications import VGG16
+from PIL import Image
 
 #load trained model
-model = joblib.load('model_random_forest.pkl')
+model = joblib.load('model/model_random_forest.pkl')
 
-#function to preprocess the input data
-def preprocess(data):
+def process_image(image):
+    # Open the uploaded image and perform preprocessing
+    img = Image.open(image)
+    img = img.resize((224, 224))  # Resize the image to match the input size of the model
+    img_array = np.array(img)
+    
+    # Process the image further if necessary
+    normalized_image = img_array / 255.0
+        
+    return normalized_image
 
-
-    return data
+def extract_image_features(image_path):
+    model = VGG16(weights='imagenet', include_top=False, input_shape=(224, 224, 3))
+    processed_image = process_image(image_path)
+    if processed_image is not None:
+        features = model.predict(np.expand_dims(processed_image, axis=0))
+    return np.array(features.flatten())
 
 #function to predict views
 def predict_views(input_data):
-    processed_data = preprocess(input_data)
-    prediction = model.predict(processed_data)
+    reshaped_arr = input_data.reshape(1, -1)
+    prediction = model.predict(reshaped_arr)
     return prediction
 
 
@@ -79,8 +94,11 @@ with st.form("video_info_form"):
         # print("thumb_uploaded_file", thumb_uploaded_file)
         # print("duration", duration)
         # print("videoPublishingDate", videoPublishingDate)
-        input_data = pd.DataFrame([[category_number, thumb_uploaded_file, duration, videoPublishingDate]],
-                                  columns=['category_number', 'thumb_uploaded_file', 'duration', 'videoPublishingDate'])
-        
+
+        if thumb_uploaded_file is not None:
+            processed_image = extract_image_features(thumb_uploaded_file)
+
+        features = np.array([category_number, videoPublishingDate, duration])
+        input_data = np.concatenate([processed_image, features])
         prediction = predict_views(input_data)
         st.write(f"Your Youtube Video's Predicted Views: {prediction[0]}")
