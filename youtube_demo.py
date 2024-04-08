@@ -18,7 +18,7 @@ def process_image(image):
     
     # Process the image further if necessary
     normalized_image = img_array / 255.0
-        
+    
     return normalized_image
 
 def extract_image_features(image_path):
@@ -94,11 +94,11 @@ with st.form("video_info_form"):
         # print("thumb_uploaded_file", thumb_uploaded_file)
         # print("duration", duration)
         # print("videoPublishingDate", videoPublishingDate)
-
-        if thumb_uploaded_file is not None:
+        if not channelName or not videoTitle or not category_number or not thumb_uploaded_file or not duration or not tags or not description:
+            st.error('All fields are required, please complete the input fields.')
+        else:
             processed_image = extract_image_features(thumb_uploaded_file)
-
-        features = np.array([category_number, videoPublishingDate, duration])
-        input_data = np.concatenate([processed_image, features])
-        prediction = predict_views(input_data)
-        st.write(f"Your Youtube Video's Predicted Views: {prediction[0]}")
+            features = np.array([category_number, videoPublishingDate, duration])
+            input_data = np.concatenate([processed_image, features])
+            prediction = predict_views(input_data)
+            st.write(f"Your Youtube Video's Predicted Views: {prediction[0]}")
