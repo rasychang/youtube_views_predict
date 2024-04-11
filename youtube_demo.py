@@ -36,7 +36,7 @@ def predict_views(input_data):
 
 
 #UI
-st.title('YouTube Video Info Submition')
+st.title('YouTube Video Info Submission')
 
 #input form
 with st.form("video_info_form"):
